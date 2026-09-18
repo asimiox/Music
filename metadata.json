@@ -1,0 +1,6 @@
+{
+  "name": "Nostalgia Music",
+  "description": "A single-page nostalgia music stream featuring a floating glass vinyl player, atmospheric background scenery, and YouTube playlist audio.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
