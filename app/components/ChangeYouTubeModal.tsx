@@ -26,9 +26,9 @@ const PRESETS = [
     desc: 'Cyberpunk & 80s nostalgic synth dreams',
   },
   {
-    name: 'Nostalgia Punjabi Mix (Original)',
+    name: 'Jahaan Acoustic Mix (Default)',
     url: `https://www.youtube.com/playlist?list=${YOUTUBE_PLAYLIST_ID}`,
-    desc: 'Curated mix featuring Sharn, AP Dhillon, Karan Aujla',
+    desc: 'Curated mix featuring Lost Stories, Zaeden, and acoustic melodies',
   },
 ];
 

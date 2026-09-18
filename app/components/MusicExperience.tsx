@@ -46,7 +46,7 @@ export default function MusicExperience() {
             youtubeId: saved.id,
             title: saved.title || 'Custom YouTube Playlist',
             artist: 'Loading playlist...',
-            thumbnail: 'https://i.ytimg.com/vi/z1VdU6ZwRwY/hqdefault.jpg',
+            thumbnail: 'https://i.ytimg.com/vi/Bt9pUyhF0Nk/hqdefault.jpg',
             duration: 200,
           },
         ]);
@@ -75,7 +75,7 @@ export default function MusicExperience() {
           youtubeId: source.id,
           title: 'Custom YouTube Playlist',
           artist: 'Loading playlist stream...',
-          thumbnail: 'https://i.ytimg.com/vi/z1VdU6ZwRwY/hqdefault.jpg',
+          thumbnail: 'https://i.ytimg.com/vi/Bt9pUyhF0Nk/hqdefault.jpg',
           duration: 200,
         },
       ]);
