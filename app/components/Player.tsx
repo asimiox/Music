@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Play, Pause, SkipBack, SkipForward, ListMusic, Volume2, VolumeX, Shuffle, Repeat, Youtube } from 'lucide-react';
+import { Play, Pause, SkipBack, SkipForward, ListMusic, Volume2, VolumeX, Shuffle, Repeat, Youtube, Download } from 'lucide-react';
 import { Track, PlayerState } from '../types';
 
 interface PlayerProps {
@@ -15,6 +15,7 @@ interface PlayerProps {
   onToggleShuffle: () => void;
   onToggleRepeat: () => void;
   onOpenChangeYouTube: () => void;
+  onOpenDownload: () => void;
   isCustomSource?: boolean;
 }
 
@@ -31,6 +32,7 @@ export default function Player({
   onToggleShuffle,
   onToggleRepeat,
   onOpenChangeYouTube,
+  onOpenDownload,
   isCustomSource,
 }: PlayerProps) {
   const [isSeeking, setIsSeeking] = useState(false);
@@ -121,6 +123,19 @@ export default function Player({
             </span>
             <div className="flex items-center gap-1.5 shrink-0">
               <button
+                id="drawer-download-btn"
+                type="button"
+                onClick={() => {
+                  setShowPlaylistDrawer(false);
+                  onOpenDownload();
+                }}
+                className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-white/10 hover:bg-white/20 text-white border border-white/20 text-[11px] font-medium transition-all"
+                title="Download in .MP3 or .MP4"
+              >
+                <Download className="w-3 h-3 text-white" />
+                <span>Download</span>
+              </button>
+              <button
                 id="drawer-change-yt-btn"
                 type="button"
                 onClick={() => {
@@ -131,7 +146,7 @@ export default function Player({
                 title="Change YouTube URL or playlist"
               >
                 <Youtube className="w-3 h-3 text-rose-400" />
-                <span>Change YouTube URL</span>
+                <span>Change URL</span>
               </button>
               <button
                 type="button"
@@ -234,6 +249,18 @@ export default function Player({
                 {currentTrack.artist}
               </span>
             </div>
+
+            {/* Quick Download MP3/MP4 Button (Black & White) */}
+            <button
+              id="desktop-download-btn"
+              type="button"
+              onClick={onOpenDownload}
+              className="shrink-0 p-1.5 rounded-full hover:bg-white/15 text-white/80 hover:text-white transition-colors"
+              title="Download in .MP3 or .MP4"
+              aria-label="Download in .MP3 or .MP4"
+            >
+              <Download className="w-4 h-4" />
+            </button>
 
             {/* Quick Change YouTube URL Button */}
             <button
@@ -380,6 +407,18 @@ export default function Player({
               {currentTrack.artist}
             </span>
           </div>
+
+          {/* Quick Download MP3/MP4 Button (Black & White) */}
+          <button
+            id="mobile-download-btn"
+            type="button"
+            onClick={onOpenDownload}
+            className="shrink-0 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white mr-1"
+            title="Download in .MP3 or .MP4"
+            aria-label="Download in .MP3 or .MP4"
+          >
+            <Download className="w-4 h-4" />
+          </button>
 
           {/* Quick Change YouTube URL Button */}
           <button

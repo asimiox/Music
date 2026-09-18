@@ -7,6 +7,7 @@ import TopRow from './TopRow';
 import Player from './Player';
 import AudioEngine from './AudioEngine';
 import ChangeYouTubeModal from './ChangeYouTubeModal';
+import DownloadModal from './DownloadModal';
 import MusicalCredit from './MusicalCredit';
 import { INITIAL_PLAYLIST } from '../data/playlist';
 import { Track, PlayerState, YouTubeSource } from '../types';
@@ -16,6 +17,7 @@ export default function MusicExperience() {
   const [tracks, setTracks] = useState<Track[]>(INITIAL_PLAYLIST);
   const [activeSource, setActiveSource] = useState<YouTubeSource | null>(null);
   const [showChangeModal, setShowChangeModal] = useState<boolean>(false);
+  const [showDownloadModal, setShowDownloadModal] = useState<boolean>(false);
 
   const [playerState, setPlayerState] = useState<PlayerState>({
     currentTrackIndex: 0,
@@ -251,6 +253,7 @@ export default function MusicExperience() {
           onToggleShuffle={handleToggleShuffle}
           onToggleRepeat={handleToggleRepeat}
           onOpenChangeYouTube={() => setShowChangeModal(true)}
+          onOpenDownload={() => setShowDownloadModal(true)}
           isCustomSource={Boolean(activeSource)}
         />
 
@@ -266,6 +269,15 @@ export default function MusicExperience() {
         onApplySource={handleApplySource}
         onResetDefault={handleResetSource}
       />
+
+      {/* Download in .MP3 or .MP4 Modal */}
+      {tracks[playerState.currentTrackIndex] && (
+        <DownloadModal
+          isOpen={showDownloadModal}
+          onClose={() => setShowDownloadModal(false)}
+          track={tracks[playerState.currentTrackIndex]}
+        />
+      )}
 
       {/* Audio Engine (Hidden YouTube & Web Audio) */}
       <AudioEngine
