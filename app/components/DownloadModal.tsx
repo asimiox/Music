@@ -8,6 +8,9 @@ import {
   Copy,
   FileAudio,
   FileVideo,
+  Clock,
+  AlertCircle,
+  ExternalLink,
 } from 'lucide-react';
 import { Track } from '../types';
 import { downloadMediaDirectly } from '../utils/mediaDownloader';
@@ -22,6 +25,13 @@ type DownloadFormat = 'mp3' | 'mp4';
 type AudioQuality = '320kbps' | '256kbps' | '128kbps';
 type VideoQuality = '1080p' | '720p' | '480p';
 
+function formatDuration(seconds: number): string {
+  if (!seconds || isNaN(seconds)) return 'Full length';
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+}
+
 export default function DownloadModal({ isOpen, onClose, track }: DownloadModalProps) {
   const [format, setFormat] = useState<DownloadFormat>('mp3');
   const [audioQuality, setAudioQuality] = useState<AudioQuality>('320kbps');
@@ -30,6 +40,8 @@ export default function DownloadModal({ isOpen, onClose, track }: DownloadModalP
   const [progress, setProgress] = useState<number>(0);
   const [statusText, setStatusText] = useState<string>('');
   const [isComplete, setIsComplete] = useState(false);
+  const [directDownloadUrl, setDirectDownloadUrl] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
   if (!isOpen) return null;
@@ -42,10 +54,13 @@ export default function DownloadModal({ isOpen, onClose, track }: DownloadModalP
 
     setIsDownloading(true);
     setIsComplete(false);
-    setProgress(0);
+    setErrorMessage(null);
+    setDirectDownloadUrl(null);
+    setProgress(5);
+    setStatusText('Initiating full song stream conversion...');
 
     try {
-      await downloadMediaDirectly({
+      const url = await downloadMediaDirectly({
         track,
         format,
         quality: currentQuality,
@@ -55,15 +70,15 @@ export default function DownloadModal({ isOpen, onClose, track }: DownloadModalP
         },
       });
 
+      setDirectDownloadUrl(url);
       setIsComplete(true);
-      setStatusText('Download completed directly to your device');
-      setTimeout(() => {
-        setIsDownloading(false);
-        setTimeout(() => setIsComplete(false), 3000);
-      }, 1200);
-    } catch (err) {
+      setStatusText('Complete! Full song saved directly to your downloads.');
+      setIsDownloading(false);
+    } catch (err: any) {
       console.error('Download error:', err);
-      setStatusText('Download started directly');
+      setErrorMessage(
+        err.message || 'Could not convert stream. Please try again or copy the link below.'
+      );
       setIsDownloading(false);
     }
   };
@@ -91,7 +106,7 @@ export default function DownloadModal({ isOpen, onClose, track }: DownloadModalP
         className="w-full max-w-md rounded-2xl border border-white/20 bg-black p-6 shadow-[0_20px_50px_rgba(0,0,0,0.9)] text-white relative"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header - Pure Black & White */}
+        {/* Header - Pure Monochrome Black & White */}
         <div className="flex items-center justify-between pb-4 border-b border-white/15 mb-5">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-xl bg-white text-black shrink-0">
@@ -102,7 +117,7 @@ export default function DownloadModal({ isOpen, onClose, track }: DownloadModalP
                 Download Media
               </h2>
               <p className="text-xs text-neutral-400">
-                Direct in-browser save • No redirection
+                Full length song • Direct save • No redirection
               </p>
             </div>
           </div>
@@ -134,16 +149,23 @@ export default function DownloadModal({ isOpen, onClose, track }: DownloadModalP
             <h3 className="text-sm font-semibold text-white truncate">
               {track.title}
             </h3>
-            <p className="text-xs text-neutral-400 truncate">
-              {track.artist}
-            </p>
+            <div className="flex items-center gap-2 mt-0.5">
+              <p className="text-xs text-neutral-400 truncate max-w-[150px]">
+                {track.artist}
+              </p>
+              <span className="text-neutral-500">•</span>
+              <span className="inline-flex items-center gap-1 text-[11px] text-neutral-300 font-mono">
+                <Clock className="w-3 h-3 text-neutral-400" />
+                {formatDuration(track.duration)}
+              </span>
+            </div>
           </div>
           <span className="shrink-0 text-[11px] font-mono px-2 py-0.5 rounded bg-white/10 text-white/90 border border-white/10 uppercase">
             .{format}
           </span>
         </div>
 
-        {/* Format Selector: .MP3 vs .MP4 (Strictly Black & White) */}
+        {/* Format Selector: .MP3 vs .MP4 (Pure Black & White) */}
         <div className="mb-5">
           <label className="text-[11px] font-semibold text-neutral-300 block mb-2 uppercase tracking-wider">
             Select Format
@@ -154,18 +176,28 @@ export default function DownloadModal({ isOpen, onClose, track }: DownloadModalP
               id="select-format-mp3"
               type="button"
               disabled={isDownloading}
-              onClick={() => setFormat('mp3')}
+              onClick={() => {
+                setFormat('mp3');
+                setIsComplete(false);
+                setDirectDownloadUrl(null);
+              }}
               className={`flex items-center gap-2.5 p-3 rounded-xl border text-left transition-all ${
                 format === 'mp3'
                   ? 'bg-white text-black border-white shadow-sm font-semibold'
                   : 'bg-black text-neutral-300 border-white/20 hover:border-white/40 hover:text-white'
               }`}
             >
-              <FileAudio className={`w-4 h-4 shrink-0 ${format === 'mp3' ? 'text-black' : 'text-neutral-400'}`} />
+              <FileAudio
+                className={`w-4 h-4 shrink-0 ${format === 'mp3' ? 'text-black' : 'text-neutral-400'}`}
+              />
               <div className="min-w-0">
                 <span className="text-xs block leading-tight">.MP3 Audio</span>
-                <span className={`text-[10px] block leading-tight ${format === 'mp3' ? 'text-black/70' : 'text-neutral-500'}`}>
-                  Audio Only
+                <span
+                  className={`text-[10px] block leading-tight ${
+                    format === 'mp3' ? 'text-black/70' : 'text-neutral-500'
+                  }`}
+                >
+                  Full audio ({formatDuration(track.duration)})
                 </span>
               </div>
             </button>
@@ -175,18 +207,28 @@ export default function DownloadModal({ isOpen, onClose, track }: DownloadModalP
               id="select-format-mp4"
               type="button"
               disabled={isDownloading}
-              onClick={() => setFormat('mp4')}
+              onClick={() => {
+                setFormat('mp4');
+                setIsComplete(false);
+                setDirectDownloadUrl(null);
+              }}
               className={`flex items-center gap-2.5 p-3 rounded-xl border text-left transition-all ${
                 format === 'mp4'
                   ? 'bg-white text-black border-white shadow-sm font-semibold'
                   : 'bg-black text-neutral-300 border-white/20 hover:border-white/40 hover:text-white'
               }`}
             >
-              <FileVideo className={`w-4 h-4 shrink-0 ${format === 'mp4' ? 'text-black' : 'text-neutral-400'}`} />
+              <FileVideo
+                className={`w-4 h-4 shrink-0 ${format === 'mp4' ? 'text-black' : 'text-neutral-400'}`}
+              />
               <div className="min-w-0">
                 <span className="text-xs block leading-tight">.MP4 Video</span>
-                <span className={`text-[10px] block leading-tight ${format === 'mp4' ? 'text-black/70' : 'text-neutral-500'}`}>
-                  Audiovisual
+                <span
+                  className={`text-[10px] block leading-tight ${
+                    format === 'mp4' ? 'text-black/70' : 'text-neutral-500'
+                  }`}
+                >
+                  HD audiovisual
                 </span>
               </div>
             </button>
@@ -243,14 +285,24 @@ export default function DownloadModal({ isOpen, onClose, track }: DownloadModalP
           {isDownloading && (
             <div className="space-y-1.5 animate-in fade-in duration-150">
               <div className="flex justify-between text-[11px] text-neutral-400 font-mono">
-                <span className="truncate">{statusText}</span>
-                <span className="shrink-0">{progress}%</span>
+                <span className="truncate max-w-[280px]">{statusText}</span>
+                <span className="shrink-0 font-semibold text-white">{progress}%</span>
               </div>
               <div className="h-1.5 w-full rounded-full bg-neutral-800 overflow-hidden">
                 <div
-                  className="h-full bg-white transition-all duration-200"
+                  className="h-full bg-white transition-all duration-300"
                   style={{ width: `${progress}%` }}
                 />
+              </div>
+            </div>
+          )}
+
+          {/* Error Notice */}
+          {errorMessage && (
+            <div className="p-3 rounded-xl bg-neutral-900 border border-white/20 text-xs text-neutral-300 flex items-start gap-2">
+              <AlertCircle className="w-4 h-4 text-white shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p>{errorMessage}</p>
               </div>
             </div>
           )}
@@ -270,22 +322,36 @@ export default function DownloadModal({ isOpen, onClose, track }: DownloadModalP
             {isDownloading ? (
               <>
                 <span className="w-4 h-4 rounded-full border-2 border-current border-t-transparent animate-spin shrink-0" />
-                <span>Downloading directly...</span>
+                <span>Downloading Full Song ({progress}%)...</span>
               </>
             ) : isComplete ? (
               <>
                 <Check className="w-4 h-4 text-white" />
-                <span>Downloaded Successfully</span>
+                <span>Downloaded Successfully ({formatDuration(track.duration)})</span>
               </>
             ) : (
               <>
                 <Download className="w-4 h-4" />
                 <span>
-                  Download .{format.toUpperCase()} ({currentQuality})
+                  Download Full .{format.toUpperCase()} ({currentQuality})
                 </span>
               </>
             )}
           </button>
+
+          {/* Fallback Direct Link if browser auto-save blocked */}
+          {directDownloadUrl && (
+            <a
+              href={directDownloadUrl}
+              download={`${track.artist} - ${track.title}.${format}`}
+              target="_blank"
+              rel="noreferrer"
+              className="w-full py-2 px-3 rounded-xl bg-neutral-900 hover:bg-neutral-800 border border-white/20 text-neutral-200 hover:text-white text-xs flex items-center justify-center gap-1.5 transition-colors"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Click here if download didn't trigger automatically</span>
+            </a>
+          )}
 
           {/* Secondary Copy Link Button (Black & White) */}
           <button
@@ -309,7 +375,7 @@ export default function DownloadModal({ isOpen, onClose, track }: DownloadModalP
 
         {/* Footer Note */}
         <p className="text-[11px] text-center text-neutral-500 mt-4">
-          Direct browser download • Files are saved straight to your device
+          Direct browser download • Complete {formatDuration(track.duration)} full length song
         </p>
       </div>
     </div>
